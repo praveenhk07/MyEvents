@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+require_once "db_connect.php"; 
 
 $message = "";
 
@@ -11,18 +11,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $contact   = trim($_POST['contact']);
     $password  = trim($_POST['password']);
     $confirm   = trim($_POST['confirm_password']);
+    $role      = 'customer'; // Fixed role
 
-    // Check if passwords match
     if ($password !== $confirm) {
         $message = "❌ Passwords do not match!";
     } else {
-        // Hash password
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        // Insert into DB
-        $sql = "INSERT INTO users (full_name, username, email, contact, password) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO users (full_name, username, email, contact, password, role) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssss", $full_name, $username, $email, $contact, $hashed_password);
+        $stmt->bind_param("ssssss", $full_name, $username, $email, $contact, $hashed_password, $role);
 
         if ($stmt->execute()) {
             $message = "✅ Registration successful! <a href='login.php'>Login here</a>";
@@ -33,6 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,12 +64,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="password" name="confirm_password" required>
 
             <button type="submit">Register</button>
-            <a login.php>Already have an account? <a href="login.php">Login</a> </a>
+            <p>Already have an account? <a href="login.php">Login</a></p>
         </form>
     </main>
 </body>
 </html>
-
 
 <style>
     /* General reset */

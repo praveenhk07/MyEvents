@@ -1,19 +1,34 @@
 <?php
 // profile.php
 session_start();
+require "db_connect.php"; // include your DB connection
 
-// Demo user data (replace with DB fetch later)
-if (!isset($_SESSION['username'])) {
-    $_SESSION['username'] = "Praveen H K";
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
 }
 
-$user = [
-    "name" => $_SESSION['username'],
-    "email" => "praveenhkori07@gmail.com",
-    "phone" => "+91 8884060972",
-    "role" => "Customer",
-    "joined" => "2025-07-15"
-];
+$user_id = $_SESSION['user_id'];
+
+// Handle profile update
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+
+    $stmt = $conn->prepare("UPDATE users SET full_name=?, email=?, contact=? WHERE id=?");
+    $stmt->bind_param("sssi", $name, $email, $phone, $user_id);
+    $stmt->execute();
+    $stmt->close();
+}
+
+// Fetch user data
+$stmt = $conn->prepare("SELECT full_name, email, contact, role, created_at FROM users WHERE id=?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -84,6 +99,25 @@ $user = [
             font-weight: 600;
             color: #1a73e8;
         }
+        form input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0a58ca;
+        }
         footer {
             background: #1a73e8;
             color: #fff;
@@ -98,7 +132,6 @@ $user = [
 <header>
     <h1>MyEvents</h1>
     <nav>
-        
         <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </nav>
 </header>
@@ -106,15 +139,32 @@ $user = [
 <div class="profile-container">
     <div class="profile-header">
         <img src="https://via.placeholder.com/100" alt="Profile Picture">
-        <h2><?php echo $user['name']; ?></h2>
+        <h2><?php echo htmlspecialchars($user['full_name']); ?></h2>
     </div>
 
-    <div class="profile-details">
-        <div><strong>Email:</strong> <span><?php echo $user['email']; ?></span></div>
-        <div><strong>Phone:</strong> <span><?php echo $user['phone']; ?></span></div>
-        <div><strong>Role:</strong> <span><?php echo $user['role']; ?></span></div>
-        <div><strong>Joined On:</strong> <span><?php echo $user['joined']; ?></span></div>
-    </div>
+    <form method="POST">
+        <div class="profile-details">
+            <div>
+                <strong>Name:</strong>
+                <input type="text" name="name" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
+            </div>
+            <div>
+                <strong>Email:</strong>
+                <input type="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+            </div>
+            <div>
+                <strong>Phone:</strong>
+                <input type="text" name="phone" value="<?php echo htmlspecialchars($user['contact']); ?>">
+            </div>
+            <div>
+                <strong>Role:</strong> <span><?php echo htmlspecialchars($user['role']); ?></span>
+            </div>
+            <div>
+                <strong>Joined On:</strong> <span><?php echo htmlspecialchars($user['created_at']); ?></span>
+            </div>
+        </div>
+        <button type="submit">Update Profile</button>
+    </form>
 </div>
 
 <footer>

@@ -1,35 +1,30 @@
 <?php
 // mybookings.php
 session_start();
+require "db_connect.php";
 
-// Demo username
-if (!isset($_SESSION['username'])) {
-    $_SESSION['username'] = "John Doe";
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
 }
 
-// Dummy bookings (replace with DB query later)
-$bookings = [
-    [
-        "event_type" => "Wedding",
-        "event_date" => "2025-10-20",
-        "start_time" => "18:00",
-        "end_time" => "23:00",
-        "location" => "Royal Palace, Bangalore",
-        "guests" => 250,
-        "budget" => "2,00,000",
-        "status" => "Confirmed"
-    ],
-    [
-        "event_type" => "College Fest",
-        "event_date" => "2025-11-10",
-        "start_time" => "09:00",
-        "end_time" => "18:00",
-        "location" => "UVCE Campus",
-        "guests" => 800,
-        "budget" => "5,00,000",
-        "status" => "Pending"
-    ]
-];
+$user_id = $_SESSION['user_id'];
+
+// Fetch bookings from database
+$stmt = $conn->prepare("SELECT event_type, event_date, start_time, end_time, location, guests, budget, status 
+                        FROM booked_events 
+                        WHERE user_id = ?
+                        ORDER BY event_date DESC");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$bookings = [];
+while ($row = $result->fetch_assoc()) {
+    $bookings[] = $row;
+}
+$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -105,6 +100,10 @@ $bookings = [
             color: #664d03;
             font-weight: bold;
         }
+        .status-rejected {
+            color: #842029;
+            font-weight: bold;
+        }
         footer {
             background: #1a73e8;
             color: #fff;
@@ -112,7 +111,6 @@ $bookings = [
             padding: 15px;
             margin-top: 40px;
         }
-      
     </style>
 </head>
 <body>
@@ -120,7 +118,7 @@ $bookings = [
 <header>
     <h1>MyEvents</h1>
     <nav>
-        
+        <a href="book_event.php">Book Event</a>
         <a href="logout.php" class="login-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </nav>
 </header>
@@ -137,17 +135,25 @@ $bookings = [
             <th>Budget</th>
             <th>Status</th>
         </tr>
-        <?php foreach ($bookings as $booking): ?>
-        <tr>
-            <td><?php echo $booking['event_type']; ?></td>
-            <td><?php echo $booking['event_date']; ?></td>
-            <td><?php echo $booking['start_time'] . " - " . $booking['end_time']; ?></td>
-            <td><?php echo $booking['location']; ?></td>
-            <td><?php echo $booking['guests']; ?></td>
-            <td>₹<?php echo $booking['budget']; ?></td>
-            <td class="status-<?php echo strtolower($booking['status']); ?>"><?php echo $booking['status']; ?></td>
-        </tr>
-        <?php endforeach; ?>
+        <?php if (!empty($bookings)): ?>
+            <?php foreach ($bookings as $booking): ?>
+            <tr>
+                <td><?php echo htmlspecialchars($booking['event_type']); ?></td>
+                <td><?php echo htmlspecialchars($booking['event_date']); ?></td>
+                <td><?php echo htmlspecialchars($booking['start_time'] . " - " . $booking['end_time']); ?></td>
+                <td><?php echo htmlspecialchars($booking['location']); ?></td>
+                <td><?php echo htmlspecialchars($booking['guests']); ?></td>
+                <td>₹<?php echo htmlspecialchars($booking['budget']); ?></td>
+                <td class="status-<?php echo strtolower($booking['status']); ?>">
+                    <?php echo htmlspecialchars($booking['status']); ?>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="7" style="text-align:center; color:#777;">No bookings found</td>
+            </tr>
+        <?php endif; ?>
     </table>
 </div>
 

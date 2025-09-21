@@ -1,26 +1,44 @@
 <?php
 // login.php
 session_start();
+// Ensure this sets up $conn
+require_once "db_connect.php";
 
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = htmlspecialchars($_POST['username']);
-    $password = htmlspecialchars($_POST['password']);
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
 
-    // Example credentials (you can replace with DB check later)
-    $valid_user = "Praveen_H_k";
-    $valid_pass = "12345";
+    // Prepare SQL query to fetch customer by username
+    $sql = "SELECT id, full_name, password FROM users WHERE username = ? ";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    if ($username === $valid_user && $password === $valid_pass) {
-        $_SESSION['user'] = $username;
-        header("Location: welcome.php");
-        exit();
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+
+        if (password_verify($password, $user['password'])) {
+            $_SESSION['user_id']   = $user['id'];
+            $_SESSION['full_name'] = $user['full_name'];
+            $_SESSION['username']  = $username;
+            $_SESSION['role']      = 'customer';
+
+            header("Location: welcome.php");
+            exit();
+        } else {
+            $error = "❌ Incorrect password!";
+        }
     } else {
-        $error = "Invalid username or password!";
+        $error = "❌ No customer account found with that username!";
     }
+
+    $stmt->close();
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,10 +46,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Login Page</title>
     <link rel="stylesheet" href="style.css">
 </head>
-    
 <body>
-   
-  <!-- Home Button Above Login Card -->
+    <!-- Home Button Above Login Card -->
     <div class="home-link">
         <a href="index.php"><i class="fas fa-home"></i> Back to Home</a>
     </div>
@@ -40,19 +56,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2>Sign In</h2>
         <?php if ($error) echo "<p style='color:red;'>$error</p>"; ?>
         <form method="post" action="login.php">
-            <label>E-Mail: <br><input type="text" name="username" required></label> 
-            <label>Password: <input type="password" name="password" required></label>
+            <label>Username:<br><input type="text" name="username" required></label>
+            <label>Password:<input type="password" name="password" required></label>
             <button type="submit">Login</button>
             <br>
-            <a> don't have an account? <a href="register.php">Register</a> </a>
+            <p>Don't have an account? <a href="register.php">Register</a></p>
         </form>
     </main>
 
-   
 </body>
 </html>
 
-<<style>
+<style>
 /* Reset */
 * {
     margin: 0;
@@ -92,9 +107,8 @@ main h2 {
 form label {
     display: block;
     margin-bottom: 6px;
-    font-weight: ;
-    font-size:20px;
-    color: #000000ff;
+    font-size: 20px;
+    color: #000;
 }
 
 /* Inputs */
@@ -168,6 +182,7 @@ footer a:hover {
         padding: 25px 20px;
     }
 }
+
 /* Home link above card */
 .home-link {
     position: absolute;
@@ -192,3 +207,4 @@ footer a:hover {
     background: #1559b0;
     transform: scale(1.05);
 }
+</style>

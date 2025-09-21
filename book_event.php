@@ -1,10 +1,8 @@
 <?php
 // book_event.php
 session_start();
+require "db_connect.php";
 
-if (!isset($_SESSION['username'])) {
-    $_SESSION['username'] = "John Doe"; // demo user
-}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $eventType = $_POST['event_type'];
@@ -19,9 +17,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $decoration = $_POST['decoration'];
     $message = $_POST['message'];
 
-    // Save to database in real app
-    $success = true;
+    // Get user email from session (assuming it's stored)
+    $userEmail = $_SESSION['username']; // Replace with $_SESSION['email'] if available
+
+$stmt = $conn->prepare("INSERT INTO booked_events 
+    (user_id, event_type, event_date, start_time, end_time, location, guests, budget, requirements, catering, decoration, message)
+    VALUES ((SELECT id FROM users WHERE username = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+);
+
+$stmt->bind_param("ssssssiddsss", $userEmail, $eventType, $eventDate, $startTime, $endTime, $location, 
+    $guests, $budget, $requirements, $catering, $decoration, $message
+);
+    if ($stmt->execute()) {
+        $success = "Your event request has been submitted. Our team will contact you soon!";
+    } else {
+        $error = "Error :- " . $stmt->error;
+    }
+
+    $stmt->close();
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

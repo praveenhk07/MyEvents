@@ -10,7 +10,7 @@
 </head>
 <body>
     <header>
-        <h1>Contact Us</h1>
+        <h1>MyEvents</h1>
         <nav>
             <a href="index.php">Home</a>
             <a href="about.php">About</a>

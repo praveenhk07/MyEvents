@@ -1,5 +1,7 @@
 <?php
 // contact.php
+require "db_connect.php";
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,7 +12,7 @@
 </head>
 <body>
     <header>
-        <h1>Contact Us</h1>
+        <h1>MyEvents</h1>
         <nav>
             <a href="index.php">Home</a>
             <a href="about.php">About</a>
@@ -30,15 +32,26 @@
         </form>
 
         <?php
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $name = htmlspecialchars($_POST['name']);
-            $email = htmlspecialchars($_POST['email']);
-            $message = htmlspecialchars($_POST['message']);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = htmlspecialchars($_POST['name']);
+    $email = htmlspecialchars($_POST['email']);
+    $message = htmlspecialchars($_POST['message']);
+    // Prepare and bind
+    $stmt = $conn->prepare("INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $name, $email, $message);
 
-            echo "<p>Thank you, $name. We received your message:</p>";
-            echo "<blockquote>$message</blockquote>";
-        }
-        ?>
+    // Execute and close
+    if ($stmt->execute()) {
+        echo "<p>Thank you, $name. We received your message:</p>";
+        echo "<blockquote>$message</blockquote>";
+    } else {
+        echo "<p>Sorry, there was an error saving your message. Please try again.</p>";
+    }
+
+    $stmt->close();
+    $conn->close();
+}
+?>
     </main>
 
     <footer>
