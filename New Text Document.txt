@@ -1,0 +1,48 @@
+# 🎉 MyEvents a Eveent management System
+
+A simple **Event Management Web Application** built using **PHP**, **MySQL**, **HTML**, and **CSS**, designed to manage user registrations, event bookings, and admin controls.  
+
+---
+
+## 🚀 Features  
+- User registration & login  
+- Event booking form  
+- Store bookings in MySQL database  
+- Admin can view/manage events  
+- Secure authentication (basic level)  
+
+---
+
+## 🛠️ Technologies Used  
+- **Frontend:** HTML, CSS, JavaScript  
+- **Backend:** PHP  
+- **Database:** MySQL (phpMyAdmin)  
+- **Server:** XAMPP  
+
+---  
+
+
+
+
+---
+
+## ⚙️ Installation  
+
+1. **Clone the repository**  
+   ```bash
+   git clone https://github.com/praveenhk07/MyEvents.git
+
+2. Move project to server root directory
+   for XAMPP-> htdocs/
+
+3.Create a MySQL Database
+  Open http://localhost/phpmyadmin/
+  create a new database (eg. MyEventsdb)
+  import the event_db file into it)
+
+4. Run the project
+  Open browser → http://localhost/MyEvents/
+
+
+
+  
